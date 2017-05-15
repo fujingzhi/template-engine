@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>模板引擎</title>
+</head>
+<body>
+	<h1>模板边界配置1结果显示：</h1>
+	<table></table>
+	<script id="template3" type="text/template">
+		<tbody>
+			{{list.forEach(function(item){}}
+		           <tr>
+		           		<td>{{=item.name}}</td>
+		           		<td>{{=item.age}}</td>
+		           		<td>
+		           			{{ if(item.age<15){ }}
+		           			teen
+			           		{{ }else if(item<30){ }}
+				           		man
+				           	{{ }else{ }}
+				           	old man
+				           	{{ } }}
+		           		</td>
+		           		<td>{{=item.birth}}</td>
+		           		<td>{{=item.hobby}}</td>
+		           		<td>{{=item.gender?"男":"女"}}</td>
+		           </tr>
+			{{})}}
+		</tbody>
+	</script>
+	
+	<script>
+	 var list = [
+	 	{
+	 		name : "name1",
+	 		age : "age1",
+	 		birth : "birth1",
+	 		hobby : "hobby1",
+	 		gender : 0
+	 	},
+	 	{
+	 		name : "name2",
+	 		age : "age2",
+	 		birth : "birth2",
+	 		hobby : "hobby2",
+	 		gender : 2
+	 	}
+	 ]
+	 /*js模板引擎核心原理就是将模板构造为一个动态执行函数体func_body，然后利用new Function动态执行该函数体产生模板渲染结果*/
+	 var Template = {
+	 	openTag:"<?",//模板默认开始标签
+	 	closeTag:"?>",//模板默认结束标签
+	 	assignmentTag:"<?=",//模板默认赋值标签
+	 	escapeChar:function(str){//转义模板标签中特殊字符
+	 		var defaultChars = "?*=^$()[]+-.|";//默认需要转义的字符
+	 		return str.replace(/./g,function(char){
+	 			if(defaultChars.indexOf(char)!==-1){//配置的模板标签中存在需要转义的字符
+	 				return "\\"+char;
+	 			}
+	 			return char;
+	 		});
+	 	},
+	 	templateTagConfig:function(options){
+	 		this.openTag = options.openTag;
+	 		this.closeTag = options.closeTag;
+	 		this.assignmentTag = options.assignmentTag;
+	 	},
+	 	__template:function(id,datas){//模板解析函数(模板核心)
+	 		var temStr = document.querySelector(id).innerHTML.replace(/\s{2,}/g," ");//获取模板内容并清理空白字符
+	 		var func_body = "with(dataModels){ \n var temp = '';\n temp+='";//js动态执行函数体初始化
+	 		var reg = new RegExp(this.escapeChar(this.openTag)+"\\s*(\\=?(\\s*[\\s\\S]+?))\\s*"+this.escapeChar(this.closeTag),"gi");//正则分组捕获顺序以从左到右圆括号出现的先后顺序为定
+	 		func_body += temStr.replace(reg,function(match,s1,s2){//构造函数体
+	 			if(s1===s2){//js逻辑语句
+	 				return "';\n"+s2+"\n temp+='";
+	 			}else{//变量赋值语句
+	 				return "'+("+s2+")+'";
+	 			}
+	 		})+"';\n return temp;\n}";
+	 		var render = new Function("dataModels",func_body);
+	 		return render(datas);
+	 	},
+	 }
+	 Template.templateTagConfig({//自定义配置模板标签
+	 	openTag:"{{",
+	 	closeTag:"}}",
+	 	assignmentTag:"{{ ="
+	 });
+	document.querySelector("table").innerHTML = Template.__template("#template3",{list:list});
+	</script>
+</body>
+</html>
