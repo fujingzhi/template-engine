@@ -8,5 +8,5 @@ this repo include a js file,withinwhich has a template-engine object named "Temp
 </pre>
 </h2>
 And use the Template.__template method to render your template as follow,eg:
-  <h2>document.querySelector("table").innerHTML = Template.__template("#template3",{list:list})</h2>;
+  <h2><pre>document.querySelector("table").innerHTML = Template.__template("#template3",{list:list});</pre></h2>
   
